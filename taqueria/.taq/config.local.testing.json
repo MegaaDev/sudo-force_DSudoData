@@ -1,7 +1,10 @@
 {
     "contracts": {
         "pokeGame": {
-            "address": "KT1SZ9vF6ibgsH8qKu67Zre4feygZvf18dqb"
+            "address": "KT1L35co3qFnJ75XvAZ9zqnQcUKAsdtKrcQN"
+        },
+        "Counter": {
+            "address": "KT1DNLFAu3j7PUmq8arzyAV7diRewYxAP3bt"
         }
     },
     "networkName": "ghostnet",

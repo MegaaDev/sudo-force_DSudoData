@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@taqueria/plugin-flextesa": "^0.56.0",
     "@taqueria/plugin-ligo": "^0.56.0",
     "@taqueria/plugin-octez-client": "^0.56.0",
     "@taqueria/plugin-taquito": "^0.56.0"
