@@ -18,9 +18,9 @@ export const addFile = async (
   }
 };
 
-export const buyAccess = async (ipfsId: string, contract) => {
+export const buyAccess = async (ipfsId: string, price: number, contract) => {
   try {
-    const res = await contract.buyAccess(ipfsId);
+    const res = await contract.buyAccess(ipfsId, { value: price });
     await res.wait();
     console.log("Bought file: ", res);
   } catch (e) {
@@ -32,6 +32,7 @@ export const getFileData = async (ipfsId: string, contract) => {
   try {
     const res = await contract.getFileData(ipfsId);
     console.log("File data: ", res);
+    return res;
   } catch (e) {
     console.error(e);
   }

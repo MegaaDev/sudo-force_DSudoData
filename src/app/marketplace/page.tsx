@@ -8,20 +8,20 @@ import { Loader } from '@mantine/core';
 import axios from 'axios';
 import { Buffer } from 'buffer';
 import { ethers } from 'ethers'
-import { abi } from './../../utils/abi'
+import { abi } from '../../utils/abi'
 import image from './../assets/image.png'
 
 import { useDisclosure } from '@mantine/hooks';
 import FileUpload from '../../components/ui/file-upload';
-import { IconPlus } from '@tabler/icons-react';
+import { IconFilter, IconPlus } from '@tabler/icons-react';
 import { Modal } from '@mantine/core';
 import placeHolderImage from '@images/placeholder.png';
 import Image from 'next/image';
-import { addFile, getAllFiles } from '@/utils/helper';
+import { addFile, getAllFiles, buyAccess, getFileData } from '@/utils/helper';
 
 import React, { useId, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useOutsideClick } from "./../../components/ui/expandable"
+import { useOutsideClick } from "../../components/ui/expandable"
 
 const pinataApiKey = 'd61dd22ec8928187a5f3';
 const pinataSecretApiKey =
@@ -392,6 +392,25 @@ export default function page() {
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
 
+
+
+  const handlePurchase = (ipfsKey, price) => {
+    buyAccess(ipfsKey, price, contract)
+      .then((res) => {
+        console.log("purchased the product")
+        const hotFile = getFileData(ipfsKey, contract);
+
+
+
+
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  }
+
+
+
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -529,6 +548,29 @@ export default function page() {
         )}
       </Modal>
       <div className='h-[10%]'></div>
+      <div className="h-[7%] w-[83%] mt-2 flex items-center justify-between">
+        <div className='w-full justify-start flex flex-row gap-[10px] px-[15%]'>   <div className="h-full w-[40%] flex items-center justify-around font-dmsans">
+          <button className="h-[75%]  px-[20px] rounded-3xl hover:border-2 bg-[#3D00B7] text-white hover:text-[#3D00B7] hover:bg-white hover:border-[#3D00B7]">
+            All
+          </button>
+          <button className="h-[75%] px-[20px] rounded-3xl border-2 hover:bg-[#3D00B7] hover:text-white">
+            Subscription
+          </button>
+          <button className="h-[75%] px-[20px] rounded-3xl border-2 hover:bg-[#3D00B7] hover:text-white">
+            Shop
+          </button>
+          <button className="h-[75%] px-[20px] rounded-3xl border-2 hover:bg-[#3D00B7] hover:text-white">
+            Runtimes
+          </button>
+        </div></div>
+
+        <div className="h-full w-[20%] flex items-center">
+          <button className="h-[75%] pl-10 pr-10 rounded-3xl border-2 hover:bg-[#3D00B7] hover:text-white flex items-center justify-evenly">
+            All Filters
+            <IconFilter className="ml-2 " />
+          </button>
+        </div>
+      </div>
       {/* <div className='w-full flex flex-col items-center justify-start overflow-y-scroll'>
         <div className='w-[83%] min-h-[23%] flex flex-col justify-around m-4'>
           <span className='font-dmsans font-semibold text-xl tracking-tighter h-full text-[#565656]'>
@@ -590,9 +632,9 @@ export default function page() {
             </button>
             <div
               ref={ref}
-              className="w-full max-w-[500px]  h-full md:h-fit md:max-h-[90%]  flex flex-col bg-white dark:bg-neutral-900 sm:rounded-3xl overflow-hidden"
+              className="w-full max-w-[500px]  h-full md:h-fit md:max-h-[90%]  flex flex-col bg-white  sm:rounded-3xl overflow-hidden"
             >
-              <div>
+              <div className='relative'>
                 <img
                   width={200}
                   height={200}
@@ -600,29 +642,34 @@ export default function page() {
                   alt={active[3]}
                   className="w-full h-80 lg:h-80 sm:rounded-tr-lg sm:rounded-tl-lg object-cover object-top"
                 />
+                <p
+                  className="absolute top-[20px] left-[20px] px-4 py-3 text-sm rounded-full font-bold bg-[#3000b7] text-white"
+                >
+                  {Number(active.price) + "WIE"}
+                </p>
               </div>
 
               <div>
                 <div className="flex justify-between items-start p-4">
                   <div className="">
-                    <h3 className="font-medium text-neutral-700 dark:text-neutral-200 text-base">
+                    <h3 className="font-medium text-neutral-700 text-base">
                       {active[3]}
                     </h3>
-                    <p className="text-neutral-600 dark:text-neutral-400 text-base">
+                    <p className="text-neutral-600  text-base">
                       {active.fileType}
                     </p>
                   </div>
+                  <div className='flex items-center flex-row'>
 
-                  <a
-                    href={active.thumbnail}
-                    target="_blank"
-                    className="px-4 py-3 text-sm rounded-full font-bold bg-[#3000b7] text-white"
-                  >
-                    {Number(active.price)}
-                  </a>
+                    <p className='px-4 cursor-pointer py-3 text-sm rounded-sm font-bold bg-[#3000b7] text-white'
+                      onClick={() => handlePurchase(active.contentHash, Number(active.price))}
+                    >Purchase</p>
+                  </div>
+
+
                 </div>
                 <div className="pt-4 relative px-4">
-                  <div className="text-neutral-600 text-xs md:text-sm lg:text-base h-40 md:h-fit pb-10 flex flex-col items-start gap-4 overflow-auto dark:text-neutral-400 [mask:linear-gradient(to_bottom,white,white,transparent)] [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]">
+                  <div className="text-neutral-600 text-xs md:text-sm lg:text-base h-40 md:h-fit pb-10 flex flex-col items-start gap-4 overflow-auto [mask:linear-gradient(to_bottom,white,white,transparent)] [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]">
                     {"description"}
                   </div>
                 </div>
@@ -632,11 +679,11 @@ export default function page() {
         ) : null}
       </AnimatePresence>
       <ul className="  w-full  flex flex-wrap gap-4 px-[10%]">
-        {cardsTemp.map((card, index) => (
+        {cardsTemp?.map((card, index) => (
           <div
             key={card[3]}
             onClick={() => setActive(card)}
-            className="p-4 flex flex-col w-[260px]  hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-xl cursor-pointer"
+            className="p-4 flex flex-col w-[260px]  hover:bg-neutral-50 rounded-xl cursor-pointer"
           >
             <div className="flex gap-4 flex-col  w-full">
               <div>
@@ -650,10 +697,10 @@ export default function page() {
               </div>
               <div className='w-[full] flex flex-row justify-between items-start'>
                 <div className="flex justify-center items-start flex-col">
-                  <h3 className="font-medium text-neutral-800 dark:text-neutral-200 text-center md:text-left text-base">
+                  <h3 className="font-medium text-neutral-800 text-center md:text-left text-base">
                     {card[3]}
                   </h3>
-                  <p className="text-neutral-600 dark:text-neutral-400 text-center md:text-left text-base">
+                  <p className="text-neutral-600 text-center md:text-left text-base">
                     {card.fileType}
                   </p>
 
@@ -668,120 +715,6 @@ export default function page() {
     </div>
   );
 }
-
-const cards = [
-  {
-    description: "Lana Del Rey",
-    title: "Summertime Sadness",
-    src: "https://assets.aceternity.com/demos/lana-del-rey.jpeg",
-    ctaText: "Play",
-    ctaLink: "https://ui.aceternity.com/templates",
-    content: () => {
-      return (
-        <p>
-          Lana Del Rey, an iconic American singer-songwriter, is celebrated for
-          her melancholic and cinematic music style. Born Elizabeth Woolridge
-          Grant in New York City, she has captivated audiences worldwide with
-          her haunting voice and introspective lyrics. <br /> <br /> Her songs
-          often explore themes of tragic romance, glamour, and melancholia,
-          drawing inspiration from both contemporary and vintage pop culture.
-          With a career that has seen numerous critically acclaimed albums, Lana
-          Del Rey has established herself as a unique and influential figure in
-          the music industry, earning a dedicated fan base and numerous
-          accolades.
-        </p>
-      );
-    },
-  },
-  {
-    description: "Babbu Maan",
-    title: "Mitran Di Chhatri",
-    src: "https://assets.aceternity.com/demos/babbu-maan.jpeg",
-    ctaText: "Play",
-    ctaLink: "https://ui.aceternity.com/templates",
-    content: () => {
-      return (
-        <p>
-          Babu Maan, a legendary Punjabi singer, is renowned for his soulful
-          voice and profound lyrics that resonate deeply with his audience. Born
-          in the village of Khant Maanpur in Punjab, India, he has become a
-          cultural icon in the Punjabi music industry. <br /> <br /> His songs
-          often reflect the struggles and triumphs of everyday life, capturing
-          the essence of Punjabi culture and traditions. With a career spanning
-          over two decades, Babu Maan has released numerous hit albums and
-          singles that have garnered him a massive fan following both in India
-          and abroad.
-        </p>
-      );
-    },
-  },
-
-  {
-    description: "Metallica",
-    title: "For Whom The Bell Tolls",
-    src: "https://assets.aceternity.com/demos/metallica.jpeg",
-    ctaText: "Play",
-    ctaLink: "https://ui.aceternity.com/templates",
-    content: () => {
-      return (
-        <p>
-          Metallica, an iconic American heavy metal band, is renowned for their
-          powerful sound and intense performances that resonate deeply with
-          their audience. Formed in Los Angeles, California, they have become a
-          cultural icon in the heavy metal music industry. <br /> <br /> Their
-          songs often reflect themes of aggression, social issues, and personal
-          struggles, capturing the essence of the heavy metal genre. With a
-          career spanning over four decades, Metallica has released numerous hit
-          albums and singles that have garnered them a massive fan following
-          both in the United States and abroad.
-        </p>
-      );
-    },
-  },
-  {
-    description: "Led Zeppelin",
-    title: "Stairway To Heaven",
-    src: "https://assets.aceternity.com/demos/led-zeppelin.jpeg",
-    ctaText: "Play",
-    ctaLink: "https://ui.aceternity.com/templates",
-    content: () => {
-      return (
-        <p>
-          Led Zeppelin, a legendary British rock band, is renowned for their
-          innovative sound and profound impact on the music industry. Formed in
-          London in 1968, they have become a cultural icon in the rock music
-          world. <br /> <br /> Their songs often reflect a blend of blues, hard
-          rock, and folk music, capturing the essence of the 1970s rock era.
-          With a career spanning over a decade, Led Zeppelin has released
-          numerous hit albums and singles that have garnered them a massive fan
-          following both in the United Kingdom and abroad.
-        </p>
-      );
-    },
-  },
-  {
-    description: "Mustafa Zahid",
-    title: "Toh Phir Aao",
-    src: "https://assets.aceternity.com/demos/toh-phir-aao.jpeg",
-    ctaText: "Play",
-    ctaLink: "https://ui.aceternity.com/templates",
-    content: () => {
-      return (
-        <p>
-          &quot;Aawarapan&quot;, a Bollywood movie starring Emraan Hashmi, is
-          renowned for its intense storyline and powerful performances. Directed
-          by Mohit Suri, the film has become a significant work in the Indian
-          film industry. <br /> <br /> The movie explores themes of love,
-          redemption, and sacrifice, capturing the essence of human emotions and
-          relationships. With a gripping narrative and memorable music,
-          &quot;Aawarapan&quot; has garnered a massive fan following both in
-          India and abroad, solidifying Emraan Hashmi&apos;s status as a
-          versatile actor.
-        </p>
-      );
-    },
-  },
-];
 
 
 export const CloseIcon = () => {
@@ -817,30 +750,3 @@ export const CloseIcon = () => {
   );
 };
 
-
-
-// const cards = [
-//   {
-//     description: "Lana Del Rey",
-//     title: "Summertime Sadness",
-//     src: image,
-//     ctaText: "112",
-//     content: () => {
-//       return (
-//         <p>
-//           Lana Del Rey, an iconic American singer-songwriter, is celebrated for
-//           her melancholic and cinematic music style. Born Elizabeth Woolridge
-//           Grant in New York City, she has captivated audiences worldwide with
-//           her haunting voice and introspective lyrics. <br /> <br /> Her songs
-//           often explore themes of tragic romance, glamour, and melancholia,
-//           drawing inspiration from both contemporary and vintage pop culture.
-//           With a career that has seen numerous critically acclaimed albums, Lana
-//           Del Rey has established herself as a unique and influential figure in
-//           the music industry, earning a dedicated fan base and numerous
-//           accolades.
-//         </p>
-//       );
-//     },
-//   },
-
-// ];

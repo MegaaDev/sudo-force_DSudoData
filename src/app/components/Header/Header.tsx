@@ -33,7 +33,7 @@ function Header() {
                                 DATA FORCE
                             </span>
                         </Link>
-                        <Link href="/market">
+                        <Link href="/marketplace">
                             <span className=" font-dmsans">Marketplace</span>
                         </Link>
                         <span className=" font-dmsans">Resource</span>
@@ -54,7 +54,7 @@ function Header() {
                             </div>
                         </div>
                         <div className="w-[20%] h-[50%] rounded-3xl">
-                            <Link href="/files">
+                            <Link href="/myfiles">
                                 <button className="h-full w-full rounded-3xl hover:border-2 bg-[#3D00B7] text-white hover:text-[#3D00B7] hover:bg-white hover:border-[#3D00B7]">
                                     My Files
                                 </button>

@@ -83,7 +83,7 @@ const MouseFollower: React.FC = () => {
 
 export default function Home() {
     return (
-        <div className="h-screen w-screen">
+        <div className="h-screen w-screen  overflow-hidden">
             <MouseFollower />
             <div className="w-full flex h-full border-b">
                 <div className="h-full w-3/5 flex items-center justify-end">
