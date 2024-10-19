@@ -26,6 +26,8 @@
     "@taquito/signer": "^20.1.0",
     "@taquito/taquito": "^20.1.0",
     "@taquito/tezbridge-signer": "^14.2.0",
+    "@tabler/icons": "^3.19.0",
+    "@tabler/icons-react": "^3.19.0",
     "axios": "^1.7.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -38,6 +40,7 @@
     "react": "^18",
     "react-bootstrap": "^2.10.5",
     "react-dom": "^18",
+    "react-dropzone": "^14.2.9",
     "recharts": "^2.13.0",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7"
