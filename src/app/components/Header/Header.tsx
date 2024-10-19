@@ -46,7 +46,7 @@ function Header() {
                         <div className="w-[40%] rounded-3xl border h-[50%] flex justify-around">
                             <input
                                 type="text"
-                                className="w-[80%] hover:border-none focus:border-none active:border-none active:outline-none focus:outline-none"
+                                className="w-[80%] bg-transparent pl-2 hover:border-none focus:border-none active:border-none active:outline-none focus:outline-none"
                                 placeholder="Search"
                             />
                             <div className="w-[10%] h-full items-center flex">

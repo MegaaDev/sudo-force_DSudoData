@@ -2,3 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+
+@keyframes rotate {
+    from {
+        scale: 1.5 1;
+        /* rotate: 0deg; */
+    }
+    25% {
+        scale: 1 1;
+    }
+    50% {
+        scale: 1 1.5;
+    }
+    75% {
+        scale: 1 1;
+    }
+    to {
+        scale: 1.5 1;
+        /* rotate: 360deg; */
+    }
+} 
+
+#blobl {
+    animation: rotate 20s infinite;
+}
