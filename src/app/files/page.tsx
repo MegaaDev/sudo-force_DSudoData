@@ -7,8 +7,9 @@ import { Button, Form } from 'react-bootstrap';
 import { Loader } from '@mantine/core';
 import axios from 'axios';
 import { Buffer } from 'buffer';
-import {ethers} from 'ethers'
-import {abi} from './../../utils/abi'
+import { ethers } from 'ethers'
+import { abi } from './../../utils/abi'
+import image from './../assets/image.png'
 
 import { useDisclosure } from '@mantine/hooks';
 import FileUpload from '../../components/ui/file-upload';
@@ -16,11 +17,16 @@ import { IconPlus } from '@tabler/icons-react';
 import { Modal } from '@mantine/core';
 import placeHolderImage from '@images/placeholder.png';
 import Image from 'next/image';
-import { addFile } from '@/utils/helper';
+import { addFile, getAllFiles } from '@/utils/helper';
+
+import React, { useId, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useOutsideClick } from "./../../components/ui/expandable"
 
 const pinataApiKey = 'd61dd22ec8928187a5f3';
 const pinataSecretApiKey =
   'd49a4844a11d1a745558056a37504e92ebfc10ad2a4f0f7f94ce6a19212f8cfe';
+
 
 const ShareIcon = () => {
   return (
@@ -162,18 +168,27 @@ const File = () => {
     </>
   );
 };
+type Card = {
+  name: string;
+  description: string;
+  price: number;
+  thumbnail: string;
+  fileType: string;
+}
 
 export default function page() {
   const QuickAccessArray = [1, 2, 3, 4, 5, 6];
   const FilesArray = [1, 2, 3, 4, 5, 6, 7, 8];
   const FoldersArray = [1, 2, 3, 4, 5, 6, 7, 8];
   const [opened, { open, close }] = useDisclosure(false);
-  const [selectedType, setSelectedType] = useState('');
+  const [fileType, setSelectedType] = useState('');
   const [buf, setBuf] = useState<Buffer | undefined>(undefined);
   const [hash, setHash] = useState('');
   const [loader, setLoader] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
   const [decryptionKey, setDecryptionKey] = useState('');
+
+  const [cardsTemp, setCards] = useState([])
 
   const generateKey = async () => {
     const key = await window.crypto.subtle.generateKey(
@@ -258,7 +273,7 @@ export default function page() {
     }
 
     try {
-      const [key,dkey] = await generateKey2();
+      const [key, dkey] = await generateKey2();
 
       const { encryptedBuffer, iv } = await encryptBuffer(buffer, key);
 
@@ -277,14 +292,14 @@ export default function page() {
       console.log('Generated IPFS Hash: ', ipfsId);
       setHash(ipfsId);
       setShowLinks(true);
-      addFile(ipfsId, dkey, price, contract)
+      addFile(ipfsId, dkey, name, String(thumbnail), fileType, price, contract)
         .then((res) => {
           console.log("Added file to blockchain: ", res);
         })
         .catch((e) => {
           console.error(e);
         });
-      
+
     } catch (err) {
       console.error(err);
       alert('An error occurred. Please check the console');
@@ -329,7 +344,7 @@ export default function page() {
         const signer = provider.getSigner();
         const address = await signer.getAddress();
         setAccount(address);
-        let contractAddress = "0xBCE1C300984662027136530c20734315B882dB70";
+        let contractAddress = "0x0A39c2B29fc024362F3179d4Dc3E00c253Cbfb95";
 
         const contract = new ethers.Contract(contractAddress, abi, signer);
         // contract.getFiles().then((files) => {
@@ -348,12 +363,54 @@ export default function page() {
     };
     provider && loadProvider();
   }, []);
+  useEffect(() => {
+    if (!contract) return;
+    getAllFiles(contract)
+      .then((res) => {
+        console.log("got files from blockchain: ", res);
+        // console.log(res.1)
+        setCards(res);
+        setTimeout(() => {
 
-  const [price,setPrice] = useState(0);
-  const [name,setName] = useState("");
-  const [thumbnail,setThumbnail] = useState("");
-  const [bucket,setBucket] = useState("");
-  const [days,setDays] = useState(0);
+          console.log(cardsTemp)
+        }, 3000)
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+
+  }, [contract]);
+
+  const [price, setPrice] = useState(0);
+  const [name, setName] = useState("");
+  const [thumbnail, setThumbnail] = useState("");
+  const [bucket, setBucket] = useState("");
+  const [days, setDays] = useState(0);
+  const [active, setActive] = useState(
+    null
+  );
+  const ref = useRef<HTMLDivElement>(null);
+  const id = useId();
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setActive(false);
+      }
+    }
+
+    if (active && typeof active === "object") {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [active]);
+
+  useOutsideClick(ref, () => setActive(null));
+
   return (
     <div className='w-screen h-screen'>
       <div className='fixed right-0 bottom-0 w-24 h-32'>
@@ -377,79 +434,79 @@ export default function page() {
                 <p className='text-sm text-gray-700 mb-4 break-all'>
                   {decryptionKey}
                 </p>
-             
-                        </div>
-                      ) : (
-                        <div className='flex flex-col'>
-                        <div className='flex flex-col items-center mb-4'>
-                          <h1 className='text-2xl font-semibold mb-2'>
-                          Upload and Encrypt Files to IPFS
-                          </h1>
-                          <h5 className='text-lg text-gray-600 mb-4'>
-                          Choose file to encrypt and upload to IPFS
-                          </h5>
-                          <select
-                          className='w-full p-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D00B7]'
-                          value={selectedType}
-                          onChange={(e) => setSelectedType(e.target.value)}
-                          >
-                          <option value='' disabled>
-                            Select Type
-                          </option>
-                          <option value='subscription'>Subscription</option>
-                          <option value='one_time_buy'>One time buy</option>
-                          <option value='ml'>ML</option>
-                          </select>
-                          <input
-                          type='text'
-                          placeholder='Name'
-                          className='w-full p-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D00B7]'
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          />
-                          <input
-                          type='number'
-                          placeholder='Price per day'
-                          className='w-full p-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D00B7]'
-                          value={price}
-                          onChange={(e) => setPrice(Number(e.target.value))}
-                          />
-                          {selectedType === 'subscription' && (
-                          <select
-                            className='w-full p-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D00B7]'
-                            value={bucket}
-                            onChange={(e) => setBucket(e.target.value)}
-                          >
-                            <option value='' disabled>
-                            Select Bucket
-                            </option>
-                            <option value='bucket1'>Bucket 1</option>
-                            <option value='bucket2'>Bucket 2</option>
-                            <option value='bucket3'>Bucket 3</option>
-                          </select>
-                          )}
-                          {selectedType === 'subscription' && (
-                          <input
-                            type='number'
-                            placeholder='No. of days for subscription'
-                            className='w-full p-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D00B7]'
-                            value={days}
-                            onChange={(e) => setDays(Number(e.target.value))}
-                          />
-                          )}
-                          <input
-                          type='text'
-                          placeholder='Thumbnail URL'
-                          className='w-full p-2 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D00B7]'
-                          value={thumbnail}
-                          onChange={(e) => setThumbnail(e.target.value)}
-                          />
-                        </div>
-                        <Form
-                          onSubmit={onSubmit}
-                          className='flex flex-col items-center'
-                        >
-                          {/* <input type='file' onChange={captureFile} required /> */}
+
+              </div>
+            ) : (
+              <div className='flex flex-col'>
+                <div className='flex flex-col items-center mb-4'>
+                  <h1 className='text-2xl font-semibold mb-2'>
+                    Upload and Encrypt Files to IPFS
+                  </h1>
+                  <h5 className='text-lg text-gray-600 mb-4'>
+                    Choose file to encrypt and upload to IPFS
+                  </h5>
+                  <select
+                    className='w-full p-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D00B7]'
+                    value={fileType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                  >
+                    <option value='' disabled>
+                      Select Type
+                    </option>
+                    <option value='subscription'>Subscription</option>
+                    <option value='one_time_buy'>One time buy</option>
+                    <option value='ml'>ML</option>
+                  </select>
+                  <input
+                    type='text'
+                    placeholder='Name'
+                    className='w-full p-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D00B7]'
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  <input
+                    type='number'
+                    placeholder='Price per day'
+                    className='w-full p-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D00B7]'
+                    value={price}
+                    onChange={(e) => setPrice(Number(e.target.value))}
+                  />
+                  {fileType === 'subscription' && (
+                    <select
+                      className='w-full p-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D00B7]'
+                      value={bucket}
+                      onChange={(e) => setBucket(e.target.value)}
+                    >
+                      <option value='' disabled>
+                        Select Bucket
+                      </option>
+                      <option value='bucket1'>Bucket 1</option>
+                      <option value='bucket2'>Bucket 2</option>
+                      <option value='bucket3'>Bucket 3</option>
+                    </select>
+                  )}
+                  {fileType === 'subscription' && (
+                    <input
+                      type='number'
+                      placeholder='No. of days for subscription'
+                      className='w-full p-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D00B7]'
+                      value={days}
+                      onChange={(e) => setDays(Number(e.target.value))}
+                    />
+                  )}
+                  <input
+                    type='text'
+                    placeholder='Thumbnail URL'
+                    className='w-full p-2 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D00B7]'
+                    value={thumbnail}
+                    onChange={(e) => setThumbnail(e.target.value)}
+                  />
+                </div>
+                <Form
+                  onSubmit={onSubmit}
+                  className='flex flex-col items-center'
+                >
+                  {/* <input type='file' onChange={captureFile} required /> */}
                   <FileUpload
                     onChange={(files: File[]) =>
                       captureFile({
@@ -472,7 +529,7 @@ export default function page() {
         )}
       </Modal>
       <div className='h-[10%]'></div>
-      <div className='w-full flex flex-col items-center justify-start overflow-y-scroll'>
+      {/* <div className='w-full flex flex-col items-center justify-start overflow-y-scroll'>
         <div className='w-[83%] min-h-[23%] flex flex-col justify-around m-4'>
           <span className='font-dmsans font-semibold text-xl tracking-tighter h-full text-[#565656]'>
             Quick Access
@@ -515,7 +572,275 @@ export default function page() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
+      <AnimatePresence>
+        {active && typeof active === "object" && (
+          <div className="fixed inset-0 bg-black/20 h-full w-full z-10" />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {active && typeof active === "object" ? (
+          <div className="fixed inset-0  grid place-items-center z-[100]">
+            <button
+              key={`button-${active[3]}-${id}`}
+              className="flex absolute top-2 right-2 lg:hidden items-center justify-center bg-white rounded-full h-6 w-6"
+              onClick={() => setActive(null)}
+            >
+              <CloseIcon />
+            </button>
+            <div
+              ref={ref}
+              className="w-full max-w-[500px]  h-full md:h-fit md:max-h-[90%]  flex flex-col bg-white dark:bg-neutral-900 sm:rounded-3xl overflow-hidden"
+            >
+              <div>
+                <img
+                  width={200}
+                  height={200}
+                  src={'images/placeholder.png'}
+                  alt={active[3]}
+                  className="w-full h-80 lg:h-80 sm:rounded-tr-lg sm:rounded-tl-lg object-cover object-top"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between items-start p-4">
+                  <div className="">
+                    <h3 className="font-medium text-neutral-700 dark:text-neutral-200 text-base">
+                      {active[3]}
+                    </h3>
+                    <p className="text-neutral-600 dark:text-neutral-400 text-base">
+                      {active.fileType}
+                    </p>
+                  </div>
+
+                  <a
+                    href={active.thumbnail}
+                    target="_blank"
+                    className="px-4 py-3 text-sm rounded-full font-bold bg-[#3000b7] text-white"
+                  >
+                    {Number(active.price)}
+                  </a>
+                </div>
+                <div className="pt-4 relative px-4">
+                  <div className="text-neutral-600 text-xs md:text-sm lg:text-base h-40 md:h-fit pb-10 flex flex-col items-start gap-4 overflow-auto dark:text-neutral-400 [mask:linear-gradient(to_bottom,white,white,transparent)] [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]">
+                    {"description"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </AnimatePresence>
+      <ul className="  w-full  flex flex-wrap gap-4 px-[10%]">
+        {cardsTemp.map((card, index) => (
+          <div
+            key={card[3]}
+            onClick={() => setActive(card)}
+            className="p-4 flex flex-col w-[260px]  hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-xl cursor-pointer"
+          >
+            <div className="flex gap-4 flex-col  w-full">
+              <div>
+                <img
+                  width={100}
+                  height={100}
+                  src={'images/placeholder.png'}
+                  alt={card[3]}
+                  className="h-60 w-full rounded-lg object-cover object-top"
+                />
+              </div>
+              <div className='w-[full] flex flex-row justify-between items-start'>
+                <div className="flex justify-center items-start flex-col">
+                  <h3 className="font-medium text-neutral-800 dark:text-neutral-200 text-center md:text-left text-base">
+                    {card[3]}
+                  </h3>
+                  <p className="text-neutral-600 dark:text-neutral-400 text-center md:text-left text-base">
+                    {card.fileType}
+                  </p>
+
+                </div>
+                <div> <p className='p-[3px] px-[20px] rounded-full bg-[#3000b7] text-[white]'>{Number(card.price)}</p></div>
+              </div>
+
+            </div>
+          </div>
+        ))}
+      </ul>
     </div>
   );
 }
+
+const cards = [
+  {
+    description: "Lana Del Rey",
+    title: "Summertime Sadness",
+    src: "https://assets.aceternity.com/demos/lana-del-rey.jpeg",
+    ctaText: "Play",
+    ctaLink: "https://ui.aceternity.com/templates",
+    content: () => {
+      return (
+        <p>
+          Lana Del Rey, an iconic American singer-songwriter, is celebrated for
+          her melancholic and cinematic music style. Born Elizabeth Woolridge
+          Grant in New York City, she has captivated audiences worldwide with
+          her haunting voice and introspective lyrics. <br /> <br /> Her songs
+          often explore themes of tragic romance, glamour, and melancholia,
+          drawing inspiration from both contemporary and vintage pop culture.
+          With a career that has seen numerous critically acclaimed albums, Lana
+          Del Rey has established herself as a unique and influential figure in
+          the music industry, earning a dedicated fan base and numerous
+          accolades.
+        </p>
+      );
+    },
+  },
+  {
+    description: "Babbu Maan",
+    title: "Mitran Di Chhatri",
+    src: "https://assets.aceternity.com/demos/babbu-maan.jpeg",
+    ctaText: "Play",
+    ctaLink: "https://ui.aceternity.com/templates",
+    content: () => {
+      return (
+        <p>
+          Babu Maan, a legendary Punjabi singer, is renowned for his soulful
+          voice and profound lyrics that resonate deeply with his audience. Born
+          in the village of Khant Maanpur in Punjab, India, he has become a
+          cultural icon in the Punjabi music industry. <br /> <br /> His songs
+          often reflect the struggles and triumphs of everyday life, capturing
+          the essence of Punjabi culture and traditions. With a career spanning
+          over two decades, Babu Maan has released numerous hit albums and
+          singles that have garnered him a massive fan following both in India
+          and abroad.
+        </p>
+      );
+    },
+  },
+
+  {
+    description: "Metallica",
+    title: "For Whom The Bell Tolls",
+    src: "https://assets.aceternity.com/demos/metallica.jpeg",
+    ctaText: "Play",
+    ctaLink: "https://ui.aceternity.com/templates",
+    content: () => {
+      return (
+        <p>
+          Metallica, an iconic American heavy metal band, is renowned for their
+          powerful sound and intense performances that resonate deeply with
+          their audience. Formed in Los Angeles, California, they have become a
+          cultural icon in the heavy metal music industry. <br /> <br /> Their
+          songs often reflect themes of aggression, social issues, and personal
+          struggles, capturing the essence of the heavy metal genre. With a
+          career spanning over four decades, Metallica has released numerous hit
+          albums and singles that have garnered them a massive fan following
+          both in the United States and abroad.
+        </p>
+      );
+    },
+  },
+  {
+    description: "Led Zeppelin",
+    title: "Stairway To Heaven",
+    src: "https://assets.aceternity.com/demos/led-zeppelin.jpeg",
+    ctaText: "Play",
+    ctaLink: "https://ui.aceternity.com/templates",
+    content: () => {
+      return (
+        <p>
+          Led Zeppelin, a legendary British rock band, is renowned for their
+          innovative sound and profound impact on the music industry. Formed in
+          London in 1968, they have become a cultural icon in the rock music
+          world. <br /> <br /> Their songs often reflect a blend of blues, hard
+          rock, and folk music, capturing the essence of the 1970s rock era.
+          With a career spanning over a decade, Led Zeppelin has released
+          numerous hit albums and singles that have garnered them a massive fan
+          following both in the United Kingdom and abroad.
+        </p>
+      );
+    },
+  },
+  {
+    description: "Mustafa Zahid",
+    title: "Toh Phir Aao",
+    src: "https://assets.aceternity.com/demos/toh-phir-aao.jpeg",
+    ctaText: "Play",
+    ctaLink: "https://ui.aceternity.com/templates",
+    content: () => {
+      return (
+        <p>
+          &quot;Aawarapan&quot;, a Bollywood movie starring Emraan Hashmi, is
+          renowned for its intense storyline and powerful performances. Directed
+          by Mohit Suri, the film has become a significant work in the Indian
+          film industry. <br /> <br /> The movie explores themes of love,
+          redemption, and sacrifice, capturing the essence of human emotions and
+          relationships. With a gripping narrative and memorable music,
+          &quot;Aawarapan&quot; has garnered a massive fan following both in
+          India and abroad, solidifying Emraan Hashmi&apos;s status as a
+          versatile actor.
+        </p>
+      );
+    },
+  },
+];
+
+
+export const CloseIcon = () => {
+  return (
+    <motion.svg
+      initial={{
+        opacity: 0,
+      }}
+      animate={{
+        opacity: 1,
+      }}
+      exit={{
+        opacity: 0,
+        transition: {
+          duration: 0.05,
+        },
+      }}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4 text-black"
+    >
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M18 6l-12 12" />
+      <path d="M6 6l12 12" />
+    </motion.svg>
+  );
+};
+
+
+
+// const cards = [
+//   {
+//     description: "Lana Del Rey",
+//     title: "Summertime Sadness",
+//     src: image,
+//     ctaText: "112",
+//     content: () => {
+//       return (
+//         <p>
+//           Lana Del Rey, an iconic American singer-songwriter, is celebrated for
+//           her melancholic and cinematic music style. Born Elizabeth Woolridge
+//           Grant in New York City, she has captivated audiences worldwide with
+//           her haunting voice and introspective lyrics. <br /> <br /> Her songs
+//           often explore themes of tragic romance, glamour, and melancholia,
+//           drawing inspiration from both contemporary and vintage pop culture.
+//           With a career that has seen numerous critically acclaimed albums, Lana
+//           Del Rey has established herself as a unique and influential figure in
+//           the music industry, earning a dedicated fan base and numerous
+//           accolades.
+//         </p>
+//       );
+//     },
+//   },
+
+// ];
