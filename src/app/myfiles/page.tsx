@@ -22,6 +22,7 @@ import { addFile, getAllFiles, buyAccess, getUserFiles } from '@/utils/helper';
 import React, { useId, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useOutsideClick } from "../../components/ui/expandable"
+import { contractAddressStorage } from '@/utils/contract';
 
 const pinataApiKey = 'd61dd22ec8928187a5f3';
 const pinataSecretApiKey =
@@ -344,7 +345,7 @@ export default function page() {
                 const signer = provider.getSigner();
                 const address = await signer.getAddress();
                 setAccount(address);
-                let contractAddress = "0x0A39c2B29fc024362F3179d4Dc3E00c253Cbfb95";
+                let contractAddress = contractAddressStorage;
 
                 const contract = new ethers.Contract(contractAddress, abi, signer);
                 // contract.getFiles().then((files) => {

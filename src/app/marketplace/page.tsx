@@ -5,6 +5,8 @@
 import { useEffect, useState } from 'react';
 import { Alert, Button, Form } from 'react-bootstrap';
 import { Loader } from '@mantine/core';
+import toast from 'react-hot-toast';
+
 import axios from 'axios';
 import { Buffer } from 'buffer';
 import { ethers } from 'ethers'
@@ -22,6 +24,8 @@ import { addFile, getAllFiles, buyAccess, getFileData } from '@/utils/helper';
 import React, { useId, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useOutsideClick } from "../../components/ui/expandable"
+import { Aorloader } from '../components/Aorloader';
+import { contractAddressStorage } from '@/utils/contract';
 
 const pinataApiKey = 'd61dd22ec8928187a5f3';
 const pinataSecretApiKey =
@@ -185,6 +189,7 @@ export default function page() {
   const [buf, setBuf] = useState<Buffer | undefined>(undefined);
   const [hash, setHash] = useState('');
   const [loader, setLoader] = useState(false);
+  const [loaderDec, setLoaderDec] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
   const [decryptionKey, setDecryptionKey] = useState('');
 
@@ -292,21 +297,31 @@ export default function page() {
       console.log('Generated IPFS Hash: ', ipfsId);
       setHash(ipfsId);
       setShowLinks(true);
-      addFile(ipfsId, dkey, name, String(thumbnail), fileType, price, contract)
+      addFile(ipfsId, dkey, name, String(thumbnail), fileType, price, description, contract)
         .then((res) => {
           console.log("Added file to blockchain: ", res);
+          if (res) toast.success('File successfully!');
+          else toast.error('File upload failed!');
+
         })
         .catch((e) => {
           console.error(e);
-        });
+          toast.error('File upload failed!');
+
+        }).finally(() => {
+          setLoader(false);
+
+        })
+
+      toast.success('IPFS upload Successful!');
 
     } catch (err) {
       console.error(err);
-      alert('An error occurred. Please check the console');
+      toast.error('An error occurred. Please check the console');
       setShowLinks(false);
     }
 
-    setLoader(false);
+    // setLoader(false);
   };
 
   //   if (loader) {
@@ -344,7 +359,7 @@ export default function page() {
         const signer = provider.getSigner();
         const address = await signer.getAddress();
         setAccount(address);
-        let contractAddress = "0x0A39c2B29fc024362F3179d4Dc3E00c253Cbfb95";
+        let contractAddress = contractAddressStorage;
 
         const contract = new ethers.Contract(contractAddress, abi, signer);
         // contract.getFiles().then((files) => {
@@ -389,12 +404,15 @@ export default function page() {
   const [active, setActive] = useState(
     null
   );
+  const [description, setDescription] = useState("");
+
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
 
 
 
   const handlePurchase = (ipfsKey, price) => {
+    setLoaderDec(true);
     buyAccess(ipfsKey, price, contract)
       .then(async (res) => {
         console.log("purchased the product")
@@ -402,8 +420,12 @@ export default function page() {
         setDecryptionKeyd(hotFile.decryptKey);
         setHashd(ipfsKey);
         handleDownloadAndDecrypt();
+        toast.success('File purchased successfully!');
+        setLoaderDec(false);
       })
       .catch((e) => {
+        toast.error('File purchased failed!');
+
         console.error(e);
       });
   }
@@ -519,7 +541,7 @@ export default function page() {
 
 
   return (
-    <div className='w-screen h-screen'>
+    <div className='w-screen h-screen overflow-x-hidden'>
       <div className='fixed right-0 bottom-0 w-24 h-32'>
         <button
           className='h-14 w-14 rounded-[15%] hover:border-2 flex items-center justify-center bg-[#3D00B7] text-white  hover:text-[#3D00B7] hover:bg-white hover:border-[#3D00B7] hover:translate-x-1 hover:-translate-y-1 transition-all hover:shadow-lg shadow-sm'
@@ -528,11 +550,11 @@ export default function page() {
           <IconPlus />
         </button>
       </div>
-      <Modal opened={opened} onClose={close} title=''>
-        {loader ? (
-          <div className='w-full flex justify-center'>        <Loader /></div>
+      {loader ? (
+        <div className='w-screen h-screen bg-[#00000087] absolute flex justify-center items-center overflow-hidden'>        <Aorloader /></div>
+      ) : (
+        <Modal opened={opened} onClose={close} title=''>
 
-        ) : (
           <>
             {showLinks ? (
               <div className='flex flex-col items-center p-4 bg-gray-100 rounded-lg shadow-md'>
@@ -566,7 +588,7 @@ export default function page() {
                     </svg>
                   </motion.div>
                   <span className='ml-2 text-green-500 font-semibold'>
-                    Successfully Uploaded in IPFS!
+                    Successfully Uploaded!
                   </span>
 
 
@@ -600,6 +622,13 @@ export default function page() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
+                  <textarea
+                    placeholder='Description'
+                    className='w-full p-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D00B7]'
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+
                   <input
                     type='number'
                     placeholder='Price per day'
@@ -662,8 +691,10 @@ export default function page() {
               </div>
             )}
           </>
-        )}
-      </Modal>
+
+        </Modal>
+      )}
+
 
       {decryptedFileURL && (
         <Modal opened={true} onClose={() => setDecryptedFileURL(null)} title='Decrypted File'>
@@ -697,24 +728,19 @@ export default function page() {
           </button>
         </div></div>
 
-        <div className="h-full w-[20%] flex items-center">
-          <button className="h-[75%] pl-10 pr-10 rounded-3xl border-2 hover:bg-[#3D00B7] hover:text-white flex items-center justify-evenly">
-            All Filters
-            <IconFilter className="ml-2 " />
-          </button>
-        </div>
+
       </div>
 
       <AnimatePresence>
-        {active && typeof active === "object" && (
+        {!loaderDec && active && typeof active === "object" && (
           <div className="fixed inset-0 bg-black/50 h-full w-full z-10" />
         )}
       </AnimatePresence>
-      <AnimatePresence>
+      {loaderDec ? (<div className='w-screen h-screen bg-[#00000087] absolute top-0 left-0 flex justify-center items-center  z-[200]overflow-hidden'>        <Aorloader /></div>) : (<AnimatePresence>
         {active && typeof active === "object" ? (
           <div className="fixed inset-0 grid place-items-center z-[100]">
             <button
-              key={`button-${active[3]}-${id}`}
+              key={`button-${active[2]}-${id}`}
               className="flex absolute top-2 right-2 lg:hidden items-center justify-center bg-white rounded-full h-6 w-6 shadow-md"
               onClick={() => setActive(null)}
             >
@@ -722,15 +748,15 @@ export default function page() {
             </button>
             <div
               ref={ref}
-              className="w-full max-w-[500px] h-full md:h-fit md:max-h-[90%] flex flex-col bg-white sm:rounded-3xl overflow-hidden shadow-lg"
+              className="w-full max-w-[500px] h-full md:h-fit md:max-h-[90%] flex flex-col bg-white sm:rounded-3xl overflow-hidden shadow-lg  p-[5px]"
             >
               <div className="relative">
                 <img
                   width={200}
                   height={200}
-                  src={'images/placeholder.png'}
-                  alt={active[3]}
-                  className="w-full h-80 lg:h-80 sm:rounded-tr-lg sm:rounded-tl-lg object-cover object-top"
+                  src={active.thumbnail}
+                  alt={active[2]}
+                  className="w-full h-80 lg:h-80 sm:rounded-tr-2xl sm:rounded-tl-2xl object-cover object-top"
                 />
                 <p className="absolute top-[20px] left-[20px] px-4 py-3 text-sm rounded-full font-bold bg-[#3000b7] text-white shadow-md">
                   {Number(active.price) + " WIE"}
@@ -741,7 +767,7 @@ export default function page() {
                 <div className="flex justify-between items-start p-4">
                   <div>
                     <h3 className="font-medium text-neutral-700 text-base">
-                      {active[3]}
+                      {active[2]}
                     </h3>
                     <p className="text-neutral-600 text-base">
                       {active.fileType}
@@ -760,35 +786,36 @@ export default function page() {
                 </div>
                 <div className="pt-4 relative px-4">
                   <div className="text-neutral-600 text-xs md:text-sm lg:text-base h-40 md:h-fit pb-10 flex flex-col items-start gap-4 overflow-auto [mask:linear-gradient(to_bottom,white,white,transparent)] [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]">
-                    {"description"}
+                    {active.description}
                   </div>
                 </div>
               </div>
             </div>
           </div>
         ) : null}
-      </AnimatePresence>
-      <ul className="w-full flex flex-wrap gap-4 px-[10%]">
+      </AnimatePresence>)}
+
+      <ul className="w-full flex flex-wrap gap-4 px-[10%] overflow-y-auto ">
         {cardsTemp?.map((card, index) => (
           <div
-            key={card[3]}
+            key={card[2]}
             onClick={() => setActive(card)}
-            className="p-4 flex flex-col w-[260px] hover:bg-neutral-50 rounded-xl cursor-pointer shadow-md hover:shadow-lg transition-all"
+            className="p-4 flex flex-col w-[23%] min-w-[230px] hover:bg-neutral-100 rounded-xl cursor-pointer shadow-md hover:shadow-lg transition-all hover:translate-x-1 hover:-translate-y-1"
           >
             <div className="flex gap-4 flex-col w-full">
               <div>
                 <img
                   width={100}
                   height={100}
-                  src={'images/placeholder.png'}
-                  alt={card[3]}
+                  src={card.thumbnail}
+                  alt={card[2]}
                   className="h-60 w-full rounded-lg object-cover object-top"
                 />
               </div>
               <div className="w-full flex flex-row justify-between items-start">
                 <div className="flex justify-center items-start flex-col">
                   <h3 className="font-medium text-neutral-800 text-center md:text-left text-base">
-                    {card[3]}
+                    {card[2]}
                   </h3>
                   <p className="text-neutral-600 text-center md:text-left text-base">
                     {card.fileType}
@@ -796,7 +823,7 @@ export default function page() {
                 </div>
                 <div>
                   <p className="p-[3px] px-[20px] rounded-full bg-[#3000b7] text-white shadow-md">
-                    {Number(card.price)}
+                    {"WEI" + Number(card.price)}
                   </p>
                 </div>
               </div>

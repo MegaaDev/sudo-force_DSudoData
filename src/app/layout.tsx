@@ -4,6 +4,7 @@ import './globals.css';
 import '@mantine/core/styles.css';
 import { ColorSchemeScript, MantineProvider } from '@mantine/core';
 import Header from './components/Header/Header';
+import { Toaster } from 'react-hot-toast';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -34,6 +35,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased relative`}
       >
+        <div><Toaster /></div>
         <Header />
         <MantineProvider>{children}</MantineProvider>
       </body>

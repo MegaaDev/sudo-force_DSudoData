@@ -23,7 +23,7 @@ const Search = () => {
 
 function Header() {
     return (
-        <div className="w-full h-[10%] border-b absolute top-0 left-0 ">
+        <div className="w-full h-[10%] border-b absolute top-0 left-0 bg-white">
             <div className="w-full h-full flex">
                 {/* Left */}
                 <div className="w-[50%] h-full  flex justify-end">

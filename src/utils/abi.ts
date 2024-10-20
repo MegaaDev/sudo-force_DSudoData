@@ -27,6 +27,11 @@ export const abi = [
         "type": "string"
       },
       {
+        "internalType": "string",
+        "name": "_description",
+        "type": "string"
+      },
+      {
         "internalType": "uint256",
         "name": "_price",
         "type": "uint256"
@@ -135,6 +140,11 @@ export const abi = [
         "internalType": "string",
         "name": "fileType",
         "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "description",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -184,6 +194,11 @@ export const abi = [
         "internalType": "bool",
         "name": "exists",
         "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "description",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -243,6 +258,11 @@ export const abi = [
             "internalType": "string",
             "name": "fileType",
             "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
           }
         ],
         "internalType": "struct FileStorage.FileInfo[]",
@@ -298,6 +318,11 @@ export const abi = [
             "internalType": "bool",
             "name": "exists",
             "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
           }
         ],
         "internalType": "struct FileStorage.File[]",
@@ -357,6 +382,11 @@ export const abi = [
         "internalType": "bool",
         "name": "exists",
         "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "description",
+        "type": "string"
       }
     ],
     "stateMutability": "view",

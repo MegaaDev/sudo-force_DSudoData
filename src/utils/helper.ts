@@ -5,12 +5,13 @@ export const addFile = async (
   thumbnail: string,
   fileType: string,
   price: number,
+  description: string,
   contract
 ) => {
   try {
     // console.log("hello");
     // console.log(ipfsId, decryptionKey, price, name, fileType, String(thumbnail));
-    const res = await contract.addFile(ipfsId, decryptionKey, String(name), String(thumbnail), fileType, price);
+    const res = await contract.addFile(ipfsId, decryptionKey, String(name), String(thumbnail), fileType, description, price);
     await res.wait();
     console.log("Added file to blockchain: ", res);
   } catch (e) {
