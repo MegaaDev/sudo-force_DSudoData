@@ -1,3 +1,5 @@
+import { Contract } from "ethers";
+
 export const addFile = async (
   ipfsId: string,
   decryptionKey: string,
@@ -6,12 +8,12 @@ export const addFile = async (
   fileType: string,
   price: number,
   description: string,
-  contract
+  contract: Contract
 ) => {
   try {
     // console.log("hello");
     // console.log(ipfsId, decryptionKey, price, name, fileType, String(thumbnail));
-    const res = await contract.addFile(ipfsId, decryptionKey, String(name), String(thumbnail), fileType, description, price);
+    const res = await contract?.addFile(ipfsId, decryptionKey, String(name), String(thumbnail), fileType, description, price);
     await res.wait();
     console.log("Added file to blockchain: ", res);
   } catch (e) {
@@ -19,8 +21,11 @@ export const addFile = async (
   }
 };
 
-export const buyAccess = async (ipfsId: string, price: number, contract) => {
+export const buyAccess = async (ipfsId: string, price: number, contract: Contract) => {
   try {
+    if (!contract) {
+      throw new Error("Contract is null or undefined");
+    }
     const res = await contract.buyAccess(ipfsId, { value: price });
     await res.wait();
     console.log("Bought file: ", res);
@@ -29,9 +34,9 @@ export const buyAccess = async (ipfsId: string, price: number, contract) => {
   }
 };
 
-export const getFileData = async (ipfsId: string, contract) => {
+export const getFileData = async (ipfsId: string, contract: Contract) => {
   try {
-    const res = await contract.getFileData(ipfsId);
+    const res = await contract?.getFileData(ipfsId);
     console.log("File data: ", res);
     return res;
   } catch (e) {
@@ -39,7 +44,7 @@ export const getFileData = async (ipfsId: string, contract) => {
   }
 };
 
-export const getUserFiles = async (contract) => {
+export const getUserFiles = async (contract: any) => {
   try {
     const res = await contract.getUserFiles();
     console.log("User files: ", res);
@@ -49,7 +54,7 @@ export const getUserFiles = async (contract) => {
   }
 };
 
-export const getAllFiles = async (contract) => {
+export const getAllFiles = async (contract: Contract) => {
   try {
     const res = await contract.getFiles();
     console.log("All files: ", res);

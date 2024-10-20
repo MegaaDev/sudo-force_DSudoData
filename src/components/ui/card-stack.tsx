@@ -2,9 +2,9 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import card1 from "@images/card1.png";
-import card2 from "../../public/images/card2.png";
-import card3 from "../../public/images/card3.png";
+// import card1 from "@images/card1.png";
+// import card2 from "../../public/images/card2.png";
+// import card3 from "../../public/images/card3.png";
 import Image from "next/image";
 
 let interval: any;

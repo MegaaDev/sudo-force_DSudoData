@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 
 import axios from 'axios';
 import { Buffer } from 'buffer';
-import { ethers } from 'ethers'
+import { Contract, ethers } from 'ethers'
 import { abi } from '../../utils/abi'
 import image from './../assets/image.png'
 
@@ -218,7 +218,7 @@ export default function page() {
       ["encrypt", "decrypt"]
     );
     const exportedKey = await window.crypto.subtle.exportKey("raw", key);
-    let dkey = Buffer.from(exportedKey).toString("hex");
+    const dkey = Buffer.from(exportedKey).toString("hex");
     setDecryptionKey(dkey);
     return [key, dkey];
   };
@@ -280,7 +280,7 @@ export default function page() {
     try {
       const [key, dkey] = await generateKey2();
 
-      const { encryptedBuffer, iv } = await encryptBuffer(buffer, key);
+      const { encryptedBuffer, iv } = await encryptBuffer(buffer, key as CryptoKey);
 
       const data = new FormData();
       const encryptedBlob = new Blob([iv, encryptedBuffer]);
@@ -297,11 +297,10 @@ export default function page() {
       console.log('Generated IPFS Hash: ', ipfsId);
       setHash(ipfsId);
       setShowLinks(true);
-      addFile(ipfsId, dkey, name, String(thumbnail), fileType, price, description, contract)
+      addFile(ipfsId, String(dkey), name, String(thumbnail), fileType, price, description, contract)
         .then((res) => {
           console.log("Added file to blockchain: ", res);
-          if (res) toast.success('File successfully!');
-          else toast.error('File upload failed!');
+          toast.success('File successfully!');
 
         })
         .catch((e) => {
@@ -338,7 +337,7 @@ export default function page() {
   //   }
 
   const [account, setAccount] = useState("");
-  const [contract, setContract] = useState(null);
+  const [contract, setContract] = useState<Contract>();
   const [provider, setProvider] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -359,7 +358,7 @@ export default function page() {
         const signer = provider.getSigner();
         const address = await signer.getAddress();
         setAccount(address);
-        let contractAddress = contractAddressStorage;
+        const contractAddress = contractAddressStorage;
 
         const contract = new ethers.Contract(contractAddress, abi, signer);
         // contract.getFiles().then((files) => {
@@ -376,7 +375,7 @@ export default function page() {
         console.error("Metamask is not installed");
       }
     };
-    provider && loadProvider();
+    if (provider) loadProvider();
   }, []);
   useEffect(() => {
     if (!contract) return;
@@ -411,7 +410,7 @@ export default function page() {
 
 
 
-  const handlePurchase = (ipfsKey, price) => {
+  const handlePurchase = (ipfsKey: string, price: number) => {
     setLoaderDec(true);
     buyAccess(ipfsKey, price, contract)
       .then(async (res) => {
@@ -836,7 +835,7 @@ export default function page() {
 }
 
 
-export const CloseIcon = () => {
+const CloseIcon = () => {
   return (
     <motion.svg
       initial={{

@@ -7,7 +7,7 @@ import { Button, Form } from 'react-bootstrap';
 import { Loader } from '@mantine/core';
 import axios from 'axios';
 import { Buffer } from 'buffer';
-import { ethers } from 'ethers'
+import { Contract, ethers } from 'ethers'
 import { abi } from '../../utils/abi'
 import image from './../assets/image.png'
 
@@ -214,7 +214,7 @@ export default function page() {
             ["encrypt", "decrypt"]
         );
         const exportedKey = await window.crypto.subtle.exportKey("raw", key);
-        let dkey = Buffer.from(exportedKey).toString("hex");
+        const dkey = Buffer.from(exportedKey).toString("hex");
         setDecryptionKey(dkey);
         return [key, dkey];
     };
@@ -262,53 +262,6 @@ export default function page() {
         }
     };
 
-    const onSubmit = async (event: { preventDefault: () => void }) => {
-        event.preventDefault();
-        setLoader(true);
-
-        const buffer = buf;
-        if (!buffer) {
-            alert('No file selected');
-            setLoader(false);
-            return;
-        }
-
-        try {
-            const [key, dkey] = await generateKey2();
-
-            const { encryptedBuffer, iv } = await encryptBuffer(buffer, key);
-
-            const data = new FormData();
-            const encryptedBlob = new Blob([iv, encryptedBuffer]);
-            data.append('file', encryptedBlob, 'encryptedFile');
-
-            const url = `https://api.pinata.cloud/pinning/pinFileToIPFS`;
-            const headers = {
-                pinata_api_key: String(pinataApiKey),
-                pinata_secret_api_key: String(pinataSecretApiKey),
-            };
-
-            const response = await axios.post(url, data, { headers });
-            const ipfsId = response.data.IpfsHash;
-            console.log('Generated IPFS Hash: ', ipfsId);
-            setHash(ipfsId);
-            setShowLinks(true);
-            addFile(ipfsId, dkey, name, String(thumbnail), fileType, price, contract)
-                .then((res) => {
-                    console.log("Added file to blockchain: ", res);
-                })
-                .catch((e) => {
-                    console.error(e);
-                });
-
-        } catch (err) {
-            console.error(err);
-            alert('An error occurred. Please check the console');
-            setShowLinks(false);
-        }
-
-        setLoader(false);
-    };
 
     //   if (loader) {
     //     return (
@@ -324,9 +277,9 @@ export default function page() {
     //   }
 
     const [account, setAccount] = useState("");
-    const [contract, setContract] = useState(null);
-    const [provider, setProvider] = useState(null);
-    const [modalOpen, setModalOpen] = useState(false);
+    const [contract, setContract] = useState<Contract>();
+    const [, setProvider] = useState(null);
+    // const [modalOpen, setModalOpen] = useState(false);
 
     useEffect(() => {
         console.log(ethers);
@@ -345,7 +298,7 @@ export default function page() {
                 const signer = provider.getSigner();
                 const address = await signer.getAddress();
                 setAccount(address);
-                let contractAddress = contractAddressStorage;
+                const contractAddress = contractAddressStorage;
 
                 const contract = new ethers.Contract(contractAddress, abi, signer);
                 // contract.getFiles().then((files) => {
@@ -362,7 +315,7 @@ export default function page() {
                 console.error("Metamask is not installed");
             }
         };
-        provider && loadProvider();
+        if (provider) loadProvider();
     }, []);
     useEffect(() => {
         if (!contract) return;
@@ -384,9 +337,9 @@ export default function page() {
 
     const [price, setPrice] = useState(0);
     const [name, setName] = useState("");
-    const [thumbnail, setThumbnail] = useState("");
-    const [bucket, setBucket] = useState("");
-    const [days, setDays] = useState(0);
+    const [thumbnail] = useState("");
+    // const [bucket, setBucket] = useState("");
+    // const [days, setDays] = useState(0);
     const [active, setActive] = useState(
         null
     );
@@ -575,7 +528,7 @@ export default function page() {
 }
 
 
-export const CloseIcon = () => {
+const CloseIcon = () => {
     return (
         <motion.svg
             initial={{

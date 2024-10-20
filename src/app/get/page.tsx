@@ -9,6 +9,13 @@ import { abi } from './../../utils/abi'
 
 import { ethers } from 'ethers'
 
+// Extend the Window interface to include the ethereum property
+declare global {
+    interface Window {
+        ethereum: any;
+    }
+}
+
 
 export default function DecryptPage() {
     const [hash, setHash] = useState("");
@@ -86,9 +93,9 @@ export default function DecryptPage() {
     };
 
     const [account, setAccount] = useState("");
-    const [contract, setContract] = useState(null);
-    const [provider, setProvider] = useState(null);
-    const [modalOpen, setModalOpen] = useState(false);
+    const [contract, setContract] = useState<ethers.Contract | null>(null);
+    const [, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
+    // const [modalOpen, setModalOpen] = useState(false);
 
     useEffect(() => {
         console.log(ethers);
@@ -107,9 +114,9 @@ export default function DecryptPage() {
                 const signer = provider.getSigner();
                 const address = await signer.getAddress();
                 setAccount(address);
-                let contractAddress = "0xBCE1C300984662027136530c20734315B882dB70";
+                const contractAddress = "0xBCE1C300984662027136530c20734315B882dB70";
 
-                const contract = new ethers.Contract(contractAddress, abi, signer);
+                const contract: any = new ethers.Contract(contractAddress, abi, signer);
                 // contract.getFiles().then((files) => {
                 //   console.log(files);
                 // }).catch((e) => {
@@ -124,9 +131,7 @@ export default function DecryptPage() {
                 console.error("Metamask is not installed");
             }
         };
-        provider && loadProvider();
-
-
+        if (provider) loadProvider();
     }, []);
     useEffect(() => {
         if (!contract) return;
