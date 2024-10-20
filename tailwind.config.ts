@@ -13,7 +13,8 @@ const config: Config = {
         foreground: "var(--foreground)",
       },
       fontFamily: {
-        dmsans : ['DM Sans', 'sans-serif'],
+        integralHeavy: ['IntegralCF-Heavy'],
+        dmsans: ['DM Sans', 'sans-serif'],
         integralcfBold: ['IntegralCF-Bold', 'sans-serif'],
       }
     },

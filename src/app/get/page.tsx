@@ -144,7 +144,7 @@ export default function DecryptPage() {
 
 
     return (
-        <div className="flex  h-screen w-screen justify-center items-center">
+        <div className="flex  h-screen w-screen justify-center items-center ">
             <Card className="p-4 shadow-lg" style={{ maxWidth: "500px", width: "100%" }}>
                 <h2 className="mb-4 text-center">Download and Decrypt File</h2>
                 <Form>

@@ -87,8 +87,8 @@ export default function Home() {
             <MouseFollower />
             <div className="w-full flex h-full border-b">
                 <div className="h-full w-3/5 flex items-center justify-end">
-                    <div className="h-[70%] flex flex-col w-[80%] text-left items-start justify-evenly ">
-                        <span className="text-5xl font-integralcfBold font-bold text-left tracking-tighter">
+                    <div className="h-[70%] flex flex-col w-[80%] text-left items-start justify-evenly  ">
+                        <span className="text-4xl  font-integralHeavy font-bold text-left tracking-tighter">
                             OWN, CONTROL AND MONETIZE
                             <br />
                             YOUR DATA

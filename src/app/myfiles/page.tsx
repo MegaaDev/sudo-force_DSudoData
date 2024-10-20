@@ -17,7 +17,7 @@ import { IconPlus } from '@tabler/icons-react';
 import { Modal } from '@mantine/core';
 import placeHolderImage from '@images/placeholder.png';
 import Image from 'next/image';
-import { addFile, getAllFiles, buyAccess } from '@/utils/helper';
+import { addFile, getAllFiles, buyAccess, getUserFiles } from '@/utils/helper';
 
 import React, { useId, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -365,7 +365,7 @@ export default function page() {
     }, []);
     useEffect(() => {
         if (!contract) return;
-        getAllFiles(contract)
+        getUserFiles(contract)
             .then((res) => {
                 console.log("got files from blockchain: ", res);
                 // console.log(res.1)

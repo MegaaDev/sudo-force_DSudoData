@@ -36,7 +36,9 @@ function Header() {
                         <Link href="/marketplace">
                             <span className=" font-dmsans">Marketplace</span>
                         </Link>
-                        <span className=" font-dmsans">Resource</span>
+                        <Link href={'https://github.com/MegaaDev/sudo-force_DSudoData.git'}>
+                            <span className=" font-dmsans">Resource</span>
+                        </Link>
                         <span className=" font-dmsans">About</span>
                     </div>
                 </div>

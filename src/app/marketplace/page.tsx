@@ -530,18 +530,47 @@ export default function page() {
       </div>
       <Modal opened={opened} onClose={close} title=''>
         {loader ? (
-          <Loader />
+          <div className='w-full flex justify-center'>        <Loader /></div>
+
         ) : (
           <>
             {showLinks ? (
               <div className='flex flex-col items-center p-4 bg-gray-100 rounded-lg shadow-md'>
-                <h6 className='text-lg font-semibold mb-2'>IPFS Hash:</h6>
+                {/* <h6 className='text-lg font-semibold mb-2'>IPFS Hash:</h6>
                 <p className='text-sm text-gray-700 mb-4 break-all'>{hash}</p>
                 <h6 className='text-lg font-semibold mb-2'>Decryption Key:</h6>
                 <p className='text-sm text-gray-700 mb-4 break-all'>
                   {decryptionKey}
-                </p>
+                </p> */}
+                <div className='flex items-center justify-center mt-4'>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.5, ease: 'easeInOut' }}
+                    className='text-green-500'
+                  >
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      width='48'
+                      height='48'
+                      viewBox='0 0 24 24'
+                      fill='none'
+                      stroke='currentColor'
+                      strokeWidth='2'
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      className='icon icon-tabler icon-tabler-check'
+                    >
+                      <path stroke='none' d='M0 0h24v24H0z' fill='none' />
+                      <path d='M5 12l5 5l10 -10' />
+                    </svg>
+                  </motion.div>
+                  <span className='ml-2 text-green-500 font-semibold'>
+                    Successfully Uploaded in IPFS!
+                  </span>
 
+
+                </div>
               </div>
             ) : (
               <div className='flex flex-col'>
@@ -675,70 +704,27 @@ export default function page() {
           </button>
         </div>
       </div>
-      {/* <div className='w-full flex flex-col items-center justify-start overflow-y-scroll'>
-        <div className='w-[83%] min-h-[23%] flex flex-col justify-around m-4'>
-          <span className='font-dmsans font-semibold text-xl tracking-tighter h-full text-[#565656]'>
-            Quick Access
-          </span>
-          <div className='w-full'>
-            <div className='flex flex-row flex-wrap items-start justify-centre '>
-              {QuickAccessArray.map((item, index) => (
-                <File />
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className='w-[83%] min-h-[23%] flex flex-col justify-around m-4'>
-          <span className='font-dmsans font-semibold text-xl tracking-tighter h-full text-[#565656]'>
-            Folders
-          </span>
-          <div className='w-full'>
-            <div className='flex flex-row flex-wrap items-start justify-centre '>
-              {QuickAccessArray.map((item, index) => (
-                <File />
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className='w-[83%] min-h-[23%] flex flex-col justify-around m-4'>
-          <span className='font-dmsans font-semibold text-xl tracking-tighter h-full text-[#565656]'>
-            Files
-          </span>
-          <div className='w-full'>
-            <div className='flex flex-row flex-wrap items-start justify-centre '>
-              {QuickAccessArray.map((item, index) => (
-                <File />
-              ))}
-              {QuickAccessArray.map((item, index) => (
-                <File />
-              ))}
-              {QuickAccessArray.map((item, index) => (
-                <File />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div> */}
+
       <AnimatePresence>
         {active && typeof active === "object" && (
-          <div className="fixed inset-0 bg-black/20 h-full w-full z-10" />
+          <div className="fixed inset-0 bg-black/50 h-full w-full z-10" />
         )}
       </AnimatePresence>
       <AnimatePresence>
         {active && typeof active === "object" ? (
-          <div className="fixed inset-0  grid place-items-center z-[100]">
+          <div className="fixed inset-0 grid place-items-center z-[100]">
             <button
               key={`button-${active[3]}-${id}`}
-              className="flex absolute top-2 right-2 lg:hidden items-center justify-center bg-white rounded-full h-6 w-6"
+              className="flex absolute top-2 right-2 lg:hidden items-center justify-center bg-white rounded-full h-6 w-6 shadow-md"
               onClick={() => setActive(null)}
             >
               <CloseIcon />
             </button>
             <div
               ref={ref}
-              className="w-full max-w-[500px]  h-full md:h-fit md:max-h-[90%]  flex flex-col bg-white  sm:rounded-3xl overflow-hidden"
+              className="w-full max-w-[500px] h-full md:h-fit md:max-h-[90%] flex flex-col bg-white sm:rounded-3xl overflow-hidden shadow-lg"
             >
-              <div className='relative'>
+              <div className="relative">
                 <img
                   width={200}
                   height={200}
@@ -746,33 +732,31 @@ export default function page() {
                   alt={active[3]}
                   className="w-full h-80 lg:h-80 sm:rounded-tr-lg sm:rounded-tl-lg object-cover object-top"
                 />
-                <p
-                  className="absolute top-[20px] left-[20px] px-4 py-3 text-sm rounded-full font-bold bg-[#3000b7] text-white"
-                >
-                  {Number(active.price) + "WIE"}
+                <p className="absolute top-[20px] left-[20px] px-4 py-3 text-sm rounded-full font-bold bg-[#3000b7] text-white shadow-md">
+                  {Number(active.price) + " WIE"}
                 </p>
               </div>
 
               <div>
                 <div className="flex justify-between items-start p-4">
-                  <div className="">
+                  <div>
                     <h3 className="font-medium text-neutral-700 text-base">
                       {active[3]}
                     </h3>
-                    <p className="text-neutral-600  text-base">
+                    <p className="text-neutral-600 text-base">
                       {active.fileType}
                     </p>
                   </div>
-                  <div className='flex items-center flex-row'>
-
-                    <p className='px-4 cursor-pointer py-3 text-sm rounded-sm font-bold bg-[#3000b7] text-white'
+                  <div className="flex items-center flex-row">
+                    <p
+                      className="px-4 cursor-pointer py-3 text-sm rounded-sm font-bold bg-[#3000b7] text-white shadow-md hover:bg-[#5933c5] transition-all"
                       onClick={() => {
                         handlePurchase(active.contentHash, Number(active.price));
                       }}
-                    >Purchase</p>
+                    >
+                      Purchase
+                    </p>
                   </div>
-
-
                 </div>
                 <div className="pt-4 relative px-4">
                   <div className="text-neutral-600 text-xs md:text-sm lg:text-base h-40 md:h-fit pb-10 flex flex-col items-start gap-4 overflow-auto [mask:linear-gradient(to_bottom,white,white,transparent)] [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]">
@@ -784,14 +768,14 @@ export default function page() {
           </div>
         ) : null}
       </AnimatePresence>
-      <ul className="  w-full  flex flex-wrap gap-4 px-[10%]">
+      <ul className="w-full flex flex-wrap gap-4 px-[10%]">
         {cardsTemp?.map((card, index) => (
           <div
             key={card[3]}
             onClick={() => setActive(card)}
-            className="p-4 flex flex-col w-[260px]  hover:bg-neutral-50 rounded-xl cursor-pointer"
+            className="p-4 flex flex-col w-[260px] hover:bg-neutral-50 rounded-xl cursor-pointer shadow-md hover:shadow-lg transition-all"
           >
-            <div className="flex gap-4 flex-col  w-full">
+            <div className="flex gap-4 flex-col w-full">
               <div>
                 <img
                   width={100}
@@ -801,7 +785,7 @@ export default function page() {
                   className="h-60 w-full rounded-lg object-cover object-top"
                 />
               </div>
-              <div className='w-[full] flex flex-row justify-between items-start'>
+              <div className="w-full flex flex-row justify-between items-start">
                 <div className="flex justify-center items-start flex-col">
                   <h3 className="font-medium text-neutral-800 text-center md:text-left text-base">
                     {card[3]}
@@ -809,11 +793,13 @@ export default function page() {
                   <p className="text-neutral-600 text-center md:text-left text-base">
                     {card.fileType}
                   </p>
-
                 </div>
-                <div> <p className='p-[3px] px-[20px] rounded-full bg-[#3000b7] text-[white]'>{Number(card.price)}</p></div>
+                <div>
+                  <p className="p-[3px] px-[20px] rounded-full bg-[#3000b7] text-white shadow-md">
+                    {Number(card.price)}
+                  </p>
+                </div>
               </div>
-
             </div>
           </div>
         ))}

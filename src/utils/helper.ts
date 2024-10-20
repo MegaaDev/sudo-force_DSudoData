@@ -42,6 +42,7 @@ export const getUserFiles = async (contract) => {
   try {
     const res = await contract.getUserFiles();
     console.log("User files: ", res);
+    return res;
   } catch (e) {
     console.error(e);
   }
