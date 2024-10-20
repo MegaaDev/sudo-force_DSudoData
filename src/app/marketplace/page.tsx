@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 import { useEffect, useState } from 'react';
-import { Button, Form } from 'react-bootstrap';
+import { Alert, Button, Form } from 'react-bootstrap';
 import { Loader } from '@mantine/core';
 import axios from 'axios';
 import { Buffer } from 'buffer';
@@ -396,18 +396,18 @@ export default function page() {
 
   const handlePurchase = (ipfsKey, price) => {
     buyAccess(ipfsKey, price, contract)
-      .then((res) => {
+      .then(async (res) => {
         console.log("purchased the product")
-        const hotFile = getFileData(ipfsKey, contract);
-
-
-
-
+        const hotFile = await getFileData(ipfsKey, contract);
+        setDecryptionKeyd(hotFile.decryptKey);
+        setHashd(ipfsKey);
+        handleDownloadAndDecrypt();
       })
       .catch((e) => {
         console.error(e);
       });
   }
+
 
 
 
@@ -429,6 +429,94 @@ export default function page() {
   }, [active]);
 
   useOutsideClick(ref, () => setActive(null));
+  const [hashd, setHashd] = useState("");
+  const [decryptionKeyd, setDecryptionKeyd] = useState("");
+  const [decryptedFileURL, setDecryptedFileURL] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    console.log("here")
+    handleDownloadAndDecrypt();
+
+  }, [hashd, decryptionKeyd])
+
+
+  const decryptBuffer = async (
+    encryptedBuffer: ArrayBuffer,
+    iv: Uint8Array,
+    keyHex: string
+  ) => {
+    try {
+      // Convert the hex key back into a CryptoKey object
+      const keyBuffer = Buffer.from(keyHex, "hex");
+      const cryptoKey = await window.crypto.subtle.importKey(
+        "raw",
+        keyBuffer,
+        { name: "AES-GCM" },
+        true,
+        ["decrypt"]
+      );
+
+      // Decrypt the buffer
+      const decrypted = await window.crypto.subtle.decrypt(
+        {
+          name: "AES-GCM",
+          iv: iv,
+        },
+        cryptoKey,
+        encryptedBuffer
+      );
+      return new Uint8Array(decrypted);
+    } catch (error) {
+      console.error("Error decrypting file:", error);
+      setErrorMessage("Error decrypting file. Please check your key.");
+      return null;
+    }
+  };
+
+  const handleDownloadAndDecrypt = async () => {
+    console.log("haha")
+    if (!hashd || !decryptionKeyd) {
+      setErrorMessage("Please enter both the IPFS hash and decryption key.");
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage(null);
+
+    try {
+      // Download the encrypted file from IPFS
+      const response = await axios.get(`https://ipfs.io/ipfs/${hashd}`, {
+        responseType: "arraybuffer",
+      });
+
+      // Extract IV and encrypted data
+      const iv = new Uint8Array(response.data.slice(0, 12)); // First 12 bytes are IV
+      const encryptedData = response.data.slice(12); // The rest is the encrypted data
+
+      // Decrypt the file
+      console.log("hahaa", encryptedData, iv, decryptionKeyd)
+
+      const decrypted = await decryptBuffer(encryptedData, iv, decryptionKeyd);
+      console.log("hahaaa", decrypted)
+
+      if (decrypted) {
+        // Convert the decrypted file into a Blob and create an object URL
+        const blob = new Blob([decrypted], { type: "image/png" }); // You can adjust the MIME type as needed
+        const url = URL.createObjectURL(blob);
+        setDecryptedFileURL(url); // Set the URL to display the image
+        console.log(url)
+      }
+    } catch (err) {
+      console.error("Error downloading or decrypting file:", err);
+      setErrorMessage("An error occurred. Please check the IPFS hash or decryption key.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   return (
     <div className='w-screen h-screen'>
@@ -547,6 +635,22 @@ export default function page() {
           </>
         )}
       </Modal>
+
+      {decryptedFileURL && (
+        <Modal opened={true} onClose={() => setDecryptedFileURL(null)} title='Decrypted File'>
+          <div className='flex flex-col items-center'>
+            <h1 className='text-2xl font-semibold mb-4'>Decrypted File</h1>
+            <img src={decryptedFileURL} alt='Decrypted File' className='w-full h-auto' />
+            <a
+              href={decryptedFileURL}
+              download='decrypted_file'
+              className='mt-4 bg-[#5933c5] text-white hover:bg-white hover:text-[#5933c5] hover:border-[#5933c5] border-2 transition-all rounded-lg px-4 py-2 shadow-sm hover:shadow-lg'
+            >
+              Download
+            </a>
+          </div>
+        </Modal>
+      )}
       <div className='h-[10%]'></div>
       <div className="h-[7%] w-[83%] mt-2 flex items-center justify-between">
         <div className='w-full justify-start flex flex-row gap-[10px] px-[15%]'>   <div className="h-full w-[40%] flex items-center justify-around font-dmsans">
@@ -662,7 +766,9 @@ export default function page() {
                   <div className='flex items-center flex-row'>
 
                     <p className='px-4 cursor-pointer py-3 text-sm rounded-sm font-bold bg-[#3000b7] text-white'
-                      onClick={() => handlePurchase(active.contentHash, Number(active.price))}
+                      onClick={() => {
+                        handlePurchase(active.contentHash, Number(active.price));
+                      }}
                     >Purchase</p>
                   </div>
 
